@@ -5,7 +5,7 @@ import net.ccbluex.liquidbounce.features.module.ModuleCategory
 import net.ccbluex.liquidbounce.features.module.ModuleInfo
 import net.ccbluex.liquidbounce.ui.ultralight.UltralightEngine
 import net.ccbluex.liquidbounce.ui.ultralight.view.DynamicGuiView
-import net.ccbluex.liquidbounce.ui.ultralight.view.Page
+import net.ccbluex.liquidbounce.ui.cef.page.Page
 import org.lwjgl.input.Keyboard
 import java.io.File
 

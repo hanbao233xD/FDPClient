@@ -4,7 +4,7 @@ import net.ccbluex.liquidbounce.ui.client.GuiBackground
 import net.ccbluex.liquidbounce.ui.client.altmanager.GuiAltManager
 import net.ccbluex.liquidbounce.ui.ultralight.UltralightEngine
 import net.ccbluex.liquidbounce.ui.ultralight.view.DynamicGuiView
-import net.ccbluex.liquidbounce.ui.ultralight.view.Page
+import net.ccbluex.liquidbounce.ui.cef.page.Page
 import net.minecraft.client.gui.GuiMultiplayer
 import net.minecraft.client.gui.GuiOptions
 import net.minecraft.client.gui.GuiSelectWorld

@@ -1,8 +1,9 @@
-package net.ccbluex.liquidbounce.ui.ultralight.view
+package net.ccbluex.liquidbounce.ui.cef.page
 
 import java.io.File
 
-class Page {
+open class Page {
+
     var url: String
         private set
 

@@ -6,6 +6,7 @@ import com.labymedia.ultralight.config.UltralightViewConfig
 import com.labymedia.ultralight.input.UltralightKeyEvent
 import com.labymedia.ultralight.input.UltralightMouseEvent
 import com.labymedia.ultralight.input.UltralightScrollEvent
+import net.ccbluex.liquidbounce.ui.cef.page.Page
 import net.ccbluex.liquidbounce.ui.ultralight.UltralightEngine
 import net.ccbluex.liquidbounce.ui.ultralight.listener.TheLoadListener
 import net.ccbluex.liquidbounce.ui.ultralight.listener.TheViewListener

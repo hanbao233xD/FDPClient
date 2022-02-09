@@ -1,5 +1,6 @@
 package net.ccbluex.liquidbounce.ui.ultralight.view
 
+import net.ccbluex.liquidbounce.ui.cef.page.Page
 import net.ccbluex.liquidbounce.ui.ultralight.UltralightEngine
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiScreen
@@ -80,6 +81,10 @@ abstract class GuiView(private val page: Page) : GuiScreen() {
         }
 
         mc.dispatchKeypresses()
+    }
+
+    fun destroy() {
+
     }
 
     override fun doesGuiPauseGame() = false
