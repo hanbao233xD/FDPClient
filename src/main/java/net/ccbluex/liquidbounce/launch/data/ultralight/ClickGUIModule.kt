@@ -3,8 +3,7 @@ package net.ccbluex.liquidbounce.launch.data.ultralight
 import net.ccbluex.liquidbounce.features.module.Module
 import net.ccbluex.liquidbounce.features.module.ModuleCategory
 import net.ccbluex.liquidbounce.features.module.ModuleInfo
-import net.ccbluex.liquidbounce.ui.ultralight.UltralightEngine
-import net.ccbluex.liquidbounce.ui.ultralight.view.DynamicGuiView
+import net.ccbluex.liquidbounce.ui.cef.view.DynamicGuiView
 import net.ccbluex.liquidbounce.ui.cef.page.Page
 import org.lwjgl.input.Keyboard
 import java.io.File
@@ -17,6 +16,6 @@ object ClickGUIModule : Module() {
     var openModule: Int = -1 // index in the js array
 
     override fun onEnable() {
-        mc.displayGuiScreen(DynamicGuiView(Page(File(UltralightEngine.pagesPath, "clickgui.html"))))
+        mc.displayGuiScreen(DynamicGuiView(Page(File("clickgui.html"))))
     }
 }

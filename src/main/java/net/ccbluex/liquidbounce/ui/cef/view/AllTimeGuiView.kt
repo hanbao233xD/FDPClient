@@ -1,4 +1,4 @@
-package net.ccbluex.liquidbounce.ui.ultralight.view
+package net.ccbluex.liquidbounce.ui.cef.view
 
 import net.ccbluex.liquidbounce.ui.cef.page.Page
 

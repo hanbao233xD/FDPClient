@@ -1,10 +1,9 @@
 package net.ccbluex.liquidbounce.launch.data.ultralight
 
+import net.ccbluex.liquidbounce.ui.cef.page.Page
+import net.ccbluex.liquidbounce.ui.cef.view.DynamicGuiView
 import net.ccbluex.liquidbounce.ui.client.GuiBackground
 import net.ccbluex.liquidbounce.ui.client.altmanager.GuiAltManager
-import net.ccbluex.liquidbounce.ui.ultralight.UltralightEngine
-import net.ccbluex.liquidbounce.ui.ultralight.view.DynamicGuiView
-import net.ccbluex.liquidbounce.ui.cef.page.Page
 import net.minecraft.client.gui.GuiMultiplayer
 import net.minecraft.client.gui.GuiOptions
 import net.minecraft.client.gui.GuiSelectWorld
@@ -12,7 +11,7 @@ import net.minecraft.client.resources.I18n
 import net.minecraftforge.fml.client.GuiModList
 import java.io.File
 
-object GuiMainMenu : DynamicGuiView(Page(File(UltralightEngine.pagesPath, "mainmenu.html"))) {
+object GuiMainMenu : DynamicGuiView(Page(File("mainmenu.html"))) {
     @JvmField
     var cancelledUpdate = false
     @JvmField

@@ -1,7 +1,7 @@
 package net.ccbluex.liquidbounce.launch.data.ultralight
 
 import net.ccbluex.liquidbounce.features.command.Command
-import net.ccbluex.liquidbounce.ui.ultralight.view.DynamicGuiView
+import net.ccbluex.liquidbounce.ui.cef.view.DynamicGuiView
 import net.ccbluex.liquidbounce.ui.cef.page.Page
 
 class BrowseCommand : Command("browse", emptyArray()) {

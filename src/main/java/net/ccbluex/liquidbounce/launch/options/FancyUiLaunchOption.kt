@@ -6,16 +6,15 @@ import net.ccbluex.liquidbounce.launch.LaunchFilterInfo
 import net.ccbluex.liquidbounce.launch.LaunchOption
 import net.ccbluex.liquidbounce.launch.data.ultralight.BrowseCommand
 import net.ccbluex.liquidbounce.launch.data.ultralight.ClickGUIModule
-import net.ccbluex.liquidbounce.launch.data.ultralight.GuiMainMenu
-import net.ccbluex.liquidbounce.ui.ultralight.UltralightEngine
+import net.minecraft.client.gui.GuiMainMenu
 
-@LaunchFilterInfo([EnumLaunchFilter.ULTRALIGHT])
-class UltralightLaunchOption : LaunchOption() {
+@LaunchFilterInfo([EnumLaunchFilter.FANCY_UI])
+class FancyUiLaunchOption : LaunchOption() {
     override fun start() {
-        UltralightEngine.initResources()
-        UltralightEngine.initEngine()
+//        UltralightEngine.initResources()
+//        UltralightEngine.initEngine()
 
-        LiquidBounce.mainMenu = GuiMainMenu
+        LiquidBounce.mainMenu = GuiMainMenu()
 
         LiquidBounce.commandManager.registerCommand(BrowseCommand())
         LiquidBounce.moduleManager.registerModule(ClickGUIModule)
