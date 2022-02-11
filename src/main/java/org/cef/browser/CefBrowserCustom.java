@@ -14,7 +14,7 @@ import org.cef.handler.CefScreenInfo;
 /**
  * CefBrowserOsr but with custom rendering
  * @see org.cef.browser.CefBrowser_N is fucking package private
- * @author liulihaocai
+ * @author Feather Client Team, modified by Liulihaocai
  */
 public class CefBrowserCustom extends CefBrowser_N implements CefRenderHandler {
     private final ICefRenderer renderer_;

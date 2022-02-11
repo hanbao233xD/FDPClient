@@ -1,4 +1,4 @@
-package net.ccbluex.liquidbounce.launch.data.ultralight
+package net.ccbluex.liquidbounce.launch.data.fancyui
 
 import net.ccbluex.liquidbounce.ui.cef.page.Page
 import net.ccbluex.liquidbounce.ui.cef.view.DynamicGuiView

@@ -3,6 +3,9 @@ package org.cef.browser;
 import java.awt.*;
 import java.nio.ByteBuffer;
 
+/**
+ * @author Feather Client Team
+ */
 public interface ICefRenderer {
     void render();
 

@@ -31,6 +31,9 @@ class GuiLaunchOptionSelectMenu : GuiScreen() {
         })
         LiquidBounce.startClient()
 
-        mc.displayGuiScreen(LiquidBounce.mainMenu)
+        if(mc.currentScreen is GuiLaunchOptionSelectMenu)
+            mc.displayGuiScreen(LiquidBounce.mainMenu)
     }
+
+    override fun keyTyped(p_keyTyped_1_: Char, p_keyTyped_2_: Int) { }
 }

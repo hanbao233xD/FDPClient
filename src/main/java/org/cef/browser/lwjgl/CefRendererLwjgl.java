@@ -9,7 +9,7 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
 /**
- * from https://www.feathermc.com/
+ * @author Feather Client Team, modified by Liulihaocai
  */
 public class CefRendererLwjgl implements ICefRenderer {
 
