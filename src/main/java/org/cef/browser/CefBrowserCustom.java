@@ -3,18 +3,27 @@ package org.cef.browser;
 import java.awt.Component;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
+
+import net.ccbluex.liquidbounce.ui.cef.CefRenderManager;
+import net.ccbluex.liquidbounce.utils.ClientUtils;
 import org.cef.CefClient;
 import org.cef.callback.CefDragData;
 import org.cef.handler.CefRenderHandler;
 import org.cef.handler.CefScreenInfo;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.input.Keyboard;
 
 /**
  * CefBrowserOsr but with custom rendering
  * @see org.cef.browser.CefBrowser_N is fucking package private
- * @author Feather Client Team, modified by Liulihaocai
+ * @author montoyo, Feather Client Team, modified by Liulihaocai
  */
 public class CefBrowserCustom extends CefBrowser_N implements CefRenderHandler {
     private final ICefRenderer renderer_;
@@ -28,6 +37,7 @@ public class CefBrowserCustom extends CefBrowser_N implements CefRenderHandler {
     private final int depth_per_component = 8;
     private final boolean isTransparent_;
     private final Component dc_ = new Component(){};
+    private MouseEvent lastMouseEvent = new MouseEvent(dc_, MouseEvent.MOUSE_MOVED, 0, 0, 0, 0, 0, false);
 
     public CefBrowserCustom(CefClient client, String url, boolean transparent, CefRequestContext context, ICefRenderer renderer) {
         this(client, url, transparent, context, renderer, null, null);
@@ -37,6 +47,7 @@ public class CefBrowserCustom extends CefBrowser_N implements CefRenderHandler {
         super(client, url, context, parent, inspectAt);
         this.isTransparent_ = transparent;
         this.renderer_ = renderer;
+        CefRenderManager.INSTANCE.getBrowsers().add(this);
     }
 
     @Override
@@ -89,9 +100,57 @@ public class CefBrowserCustom extends CefBrowser_N implements CefRenderHandler {
         this.renderer_.onPopupSize(size);
     }
 
+    private static class PaintData {
+        private ByteBuffer buffer;
+        private int width;
+        private int height;
+        private Rectangle[] dirtyRects;
+        private boolean hasFrame;
+        private boolean fullReRender;
+    }
+
+    private final PaintData paintData = new PaintData();
+
     @Override
-    public void onPaint(CefBrowser browser, boolean popup, Rectangle[] dirtyRects, ByteBuffer buffer, int width, int height) {
-        this.renderer_.onPaint(popup, dirtyRects, buffer, width, height);
+    public void onPaint(CefBrowser browser, boolean popup, Rectangle[] dirtyRects,
+                        ByteBuffer buffer, int width, int height) {
+        if(popup)
+            return;
+
+        final int size = (width * height) << 2;
+
+        synchronized(paintData) {
+            if(buffer.limit() > size)
+                ClientUtils.INSTANCE.logWarn("Skipping MCEF browser frame, data is too heavy"); //TODO: Don't spam
+            else {
+                if(paintData.hasFrame) //The previous frame was not uploaded to GL texture, so we skip it and render this on instead
+                    paintData.fullReRender = true;
+
+                if(paintData.buffer == null || size != paintData.buffer.capacity()) //This only happens when the browser gets resized
+                    paintData.buffer = BufferUtils.createByteBuffer(size);
+
+                paintData.buffer.position(0);
+                paintData.buffer.limit(buffer.limit());
+                buffer.position(0);
+                paintData.buffer.put(buffer);
+                paintData.buffer.position(0);
+
+                paintData.width = width;
+                paintData.height = height;
+                paintData.dirtyRects = dirtyRects;
+                paintData.hasFrame = true;
+            }
+        }
+    }
+
+    public void mcefUpdate() {
+        synchronized(paintData) {
+            if(paintData.hasFrame) {
+                renderer_.onPaint(false, paintData.dirtyRects, paintData.buffer, paintData.width, paintData.height, paintData.fullReRender);
+                paintData.hasFrame = false;
+                paintData.fullReRender = false;
+            }
+        }
     }
 
     @Override
@@ -142,13 +201,89 @@ public class CefBrowserCustom extends CefBrowser_N implements CefRenderHandler {
     }
 
     @Override
-    public synchronized void onBeforeClose() {
-        renderer_.destroy();
+    public void close(boolean force) {
+        CefRenderManager.INSTANCE.getBrowsers().remove(this);
+        this.renderer_.destroy();
+        super.close(force);
     }
 
-    //    @Override
-//    public void wasResized(int width, int height) {
-//        this.browser_rect_.setBounds(0, 0, width, height);
-//        super.wasResized(width, height);
-//    }
+    // these methods are fucking protected in the superclass, we need to wrap it
+
+    public void wasResized_(int width, int height) {
+        this.browser_rect_.setBounds(0, 0, width, height);
+        super.wasResized(width, height);
+    }
+
+    public void mouseMoved(int x, int y, int mods) {
+        MouseEvent ev = new MouseEvent(dc_, MouseEvent.MOUSE_MOVED, 0, mods, x, y, 0, false);
+        lastMouseEvent = ev;
+        sendMouseEvent(ev);
+    }
+
+    public void mouseInteracted(int x, int y, int mods, int btn, boolean pressed, int ccnt) {
+        MouseEvent ev = new MouseEvent(dc_, pressed ? MouseEvent.MOUSE_PRESSED : MouseEvent.MOUSE_RELEASED, 0, mods, x, y, ccnt, false, btn);
+        sendMouseEvent(ev);
+    }
+
+    public void mouseScrolled(int x, int y, int mods, int amount, int rot) {
+        MouseWheelEvent ev = new MouseWheelEvent(dc_, MouseEvent.MOUSE_WHEEL, 0, mods, x, y, 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, amount, rot);
+        sendMouseWheelEvent(ev);
+    }
+
+    public void keyTyped(char c, int mods) {
+        KeyEvent ev = new KeyEvent(dc_, KeyEvent.KEY_TYPED, 0, mods, 0, c);
+        sendKeyEvent(ev);
+    }
+
+    private static int remapKeycode(int kc, char c) {
+        switch(kc) {
+            case Keyboard.KEY_BACK:   return 0x08;
+            case Keyboard.KEY_DELETE: return 0x2E;
+            case Keyboard.KEY_DOWN:   return 0x28;
+            case Keyboard.KEY_RETURN: return 0x0D;
+            case Keyboard.KEY_ESCAPE: return 0x1B;
+            case Keyboard.KEY_LEFT:   return 0x25;
+            case Keyboard.KEY_RIGHT:  return 0x27;
+            case Keyboard.KEY_TAB:    return 0x09;
+            case Keyboard.KEY_UP:     return 0x26;
+            case Keyboard.KEY_PRIOR:  return 0x21;
+            case Keyboard.KEY_NEXT:   return 0x22;
+            case Keyboard.KEY_END:    return 0x23;
+            case Keyboard.KEY_HOME:   return 0x24;
+
+            default: return c;
+        }
+    }
+
+    private static final HashMap<Integer, Character> WORST_HACK = new HashMap<>();
+
+    public void fireKeyPressedByKeyCode(int keyCode, char c, int mods) {
+        if(c != '\0') {
+            synchronized(WORST_HACK) {
+                WORST_HACK.put(keyCode, c);
+            }
+        }
+
+        KeyEvent ev = new KeyEvent(dc_, KeyEvent.KEY_PRESSED, 0, mods, remapKeycode(keyCode, c), c);
+        sendKeyEvent(ev);
+    }
+
+    public void fireKeyReleasedByKeyCode(int keyCode, char c, int mods) {
+        if(c == '\0') {
+            synchronized(WORST_HACK) {
+                c = WORST_HACK.getOrDefault(keyCode, '\0');
+            }
+        }
+
+        KeyEvent ev = new KeyEvent(dc_, KeyEvent.KEY_RELEASED, 0, mods, remapKeycode(keyCode, c), c);
+        sendKeyEvent(ev);
+    }
+
+    public void keyEventByKeyCode(int keyCode, char c, int mods, boolean pressed) {
+        if(pressed) {
+            fireKeyPressedByKeyCode(keyCode, c, mods);
+        } else {
+            fireKeyReleasedByKeyCode(keyCode, c, mods);
+        }
+    }
 }

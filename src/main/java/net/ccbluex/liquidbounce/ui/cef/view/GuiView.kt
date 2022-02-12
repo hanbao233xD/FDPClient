@@ -1,86 +1,124 @@
 package net.ccbluex.liquidbounce.ui.cef.view
 
+import net.ccbluex.liquidbounce.ui.cef.CefRenderManager
 import net.ccbluex.liquidbounce.ui.cef.page.Page
+import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiScreen
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry
+import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.util.ChatAllowedCharacters
+import org.cef.browser.CefBrowserCustom
+import org.cef.browser.ICefRenderer
+import org.cef.browser.lwjgl.CefRendererLwjgl
 import org.lwjgl.input.Keyboard
 import org.lwjgl.input.Mouse
+import org.lwjgl.opengl.Display
 
 abstract class GuiView(private val page: Page) : GuiScreen() {
 
-    private var factor = 1
-    private val pressedKeyList = mutableListOf<Int>()
+    private lateinit var cefBrowser: CefBrowserCustom
+    private lateinit var cefRenderer: ICefRenderer
+
+    // we need to store char data for key release event
+    private val pressedKeyMap = mutableMapOf<Int, Char>()
 
     fun init() {
-//        view = View(Display.getWidth(), Display.getHeight())
-//        view.loadPage(page)
-//        UltralightEngine.registerView(view)
-        pressedKeyList.clear()
+        cefRenderer = CefRendererLwjgl(true)
+        cefBrowser = CefBrowserCustom(CefRenderManager.cefClient, page.url, true, null, cefRenderer)
+        cefBrowser.setCloseAllowed()
+        cefBrowser.createImmediately()
+        cefBrowser.setFocus(true)
+        cefBrowser.wasResized_(Display.getWidth(), Display.getHeight())
+        Keyboard.enableRepeatEvents(true)
+    }
+
+    fun destroy() {
+        cefBrowser.close(true)
+        Keyboard.enableRepeatEvents(false)
     }
 
     override fun drawScreen(mouseX: Int, mouseY: Int, partialTicks: Float) {
-//        var resized = false
-//        if (view.width != Display.getWidth()) {
-//            resized = true
-//        }
-//        if (view.height != Display.getHeight()) {
-//            resized = true
-//        }
-//        val sr = ScaledResolution(Minecraft.getMinecraft())
-//        view.realWidth = sr.scaledWidth
-//        view.realHeight = sr.scaledHeight
-//        factor = sr.scaleFactor
-//        if (resized) {
-//            view.resize(Display.getWidth(), Display.getHeight())
-//        }
-
         // mouse stroll
         if (Mouse.hasWheel()) {
             val wheel = Mouse.getDWheel()
             if (wheel != 0) {
-//                view.fireScrollEvent(UltralightScrollEvent()
-//                    .deltaX(0)
-//                    .deltaY(wheel)
-//                    .type(UltralightScrollEventType.BY_PIXEL))
+                cefBrowser.mouseScrolled(Mouse.getX(), Display.getHeight() - Mouse.getY(), keyModifiers(0), 1, wheel)
             }
         }
 
         // mouse move
-//        view.fireMouseEvent(UltralightMouseEvent()
-//            .type(UltralightMouseEventType.MOVED)
-//            .x(mouseX * factor)
-//            .y(mouseY * factor)
-//            .button(UltralightMouseEventButton.LEFT))
+        cefBrowser.mouseMoved(Mouse.getX(), Display.getHeight() - Mouse.getY(), 0)
 
         // key up
-        pressedKeyList.map { it }.forEach { key ->
+        pressedKeyMap.map { it }.forEach { (key, char) ->
             if (!Keyboard.isKeyDown(key)) {
-                pressedKeyList.remove(key)
+                cefBrowser.fireKeyReleasedByKeyCode(key, char, 0)
+                pressedKeyMap.remove(key)
             }
         }
 
-//        view.render()
+        GlStateManager.disableDepth()
+        GlStateManager.enableTexture2D()
+        GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f)
+        cefRenderer.render(0.0, 0.0, width.toDouble(), height.toDouble())
+        GlStateManager.enableDepth()
+    }
+
+    override fun onResize(p_onResize_1_: Minecraft?, p_onResize_2_: Int, p_onResize_3_: Int) {
+        cefBrowser.wasResized_(Display.getWidth(), Display.getHeight())
+        super.onResize(p_onResize_1_, p_onResize_2_, p_onResize_3_)
     }
 
     override fun mouseClicked(mouseX: Int, mouseY: Int, key: Int) {
+        cefBrowser.mouseInteracted(Mouse.getX(), Display.getHeight() - Mouse.getY(), mouseModifiers(keyModifiers(0)), key + 1, true, 1)
     }
 
     override fun mouseReleased(mouseX: Int, mouseY: Int, key: Int) {
+        cefBrowser.mouseInteracted(Mouse.getX(), Display.getHeight() - Mouse.getY(), mouseModifiers(keyModifiers(0)), key + 1, false, 1)
     }
 
     override fun handleKeyboardInput() {
         if (Keyboard.getEventKeyState()) {
             val char = Keyboard.getEventCharacter()
             val key = Keyboard.getEventKey()
-            pressedKeyList.add(key)
+            val mod = keyModifiers(0)
+            cefBrowser.fireKeyPressedByKeyCode(key, char, mod)
+            pressedKeyMap[key] = char
+            if (ChatAllowedCharacters.isAllowedCharacter(char)) {
+                cefBrowser.keyTyped(char, mod)
+            }
             keyTyped(char, key) // this need to be handled to make window closeable
         }
 
         mc.dispatchKeypresses()
     }
 
-    fun destroy() {
 
+    protected open fun keyModifiers(mod: Int): Int {
+        var n = mod
+        if (isCtrlKeyDown()) {
+            n = n or 0x80
+        }
+        if (isShiftKeyDown()) {
+            n = n or 0x40
+        }
+        if (isAltKeyDown()) {
+            n = n or 0x200
+        }
+        return n
+    }
+
+    protected open fun mouseModifiers(mod: Int): Int {
+        var n = mod
+        if (Mouse.isButtonDown(0)) {
+            n = n or 0x400
+        }
+        if (Mouse.isButtonDown(2)) {
+            n = n or 0x800
+        }
+        if (Mouse.isButtonDown(1)) {
+            n = n or 0x1000
+        }
+        return n
     }
 
     override fun doesGuiPauseGame() = false

@@ -7,11 +7,11 @@ import java.nio.ByteBuffer;
  * @author Feather Client Team
  */
 public interface ICefRenderer {
-    void render();
+    void render(double x1, double y1, double x2, double y2);
 
     void destroy();
 
-    void onPaint(boolean var1, Rectangle[] var2, ByteBuffer var3, int var4, int var5);
+    void onPaint(boolean popup, Rectangle[] dirtyRects, ByteBuffer buffer, int width, int height, boolean completeReRender);
 
     void onPopupSize(Rectangle var1);
 
