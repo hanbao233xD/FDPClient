@@ -235,55 +235,37 @@ public class CefBrowserCustom extends CefBrowser_N implements CefRenderHandler {
         sendKeyEvent(ev);
     }
 
+    /**
+     * fill the gap between LWJGL and AWT key codes
+     * https://stackoverflow.com/questions/15313469/java-keyboard-keycodes-list/31637206
+     */
     private static int remapKeycode(int kc, char c) {
         switch(kc) {
-            case Keyboard.KEY_BACK:   return 0x08;
-            case Keyboard.KEY_DELETE: return 0x2E;
-            case Keyboard.KEY_DOWN:   return 0x28;
-            case Keyboard.KEY_RETURN: return 0x0D;
-            case Keyboard.KEY_ESCAPE: return 0x1B;
-            case Keyboard.KEY_LEFT:   return 0x25;
-            case Keyboard.KEY_RIGHT:  return 0x27;
-            case Keyboard.KEY_TAB:    return 0x09;
-            case Keyboard.KEY_UP:     return 0x26;
-            case Keyboard.KEY_PRIOR:  return 0x21;
-            case Keyboard.KEY_NEXT:   return 0x22;
-            case Keyboard.KEY_END:    return 0x23;
-            case Keyboard.KEY_HOME:   return 0x24;
+            case Keyboard.KEY_BACK:   return 8;
+            case Keyboard.KEY_DELETE: return 127;
+            case Keyboard.KEY_RETURN: return 10;
+            case Keyboard.KEY_ESCAPE: return 27;
+            case Keyboard.KEY_LEFT:   return 37;
+            case Keyboard.KEY_UP:     return 38;
+            case Keyboard.KEY_RIGHT:  return 39;
+            case Keyboard.KEY_DOWN:   return 40;
+            case Keyboard.KEY_TAB:    return 9;
+            case Keyboard.KEY_END:    return 35;
+            case Keyboard.KEY_HOME:   return 36;
+            case Keyboard.KEY_LSHIFT:
+            case Keyboard.KEY_RSHIFT:   return 16;
+            case Keyboard.KEY_LCONTROL:
+            case Keyboard.KEY_RCONTROL:   return 17;
+            case Keyboard.KEY_LMENU: // 其实是alt
+            case Keyboard.KEY_RMENU:   return 18;
 
             default: return c;
         }
     }
 
-    private static final HashMap<Integer, Character> WORST_HACK = new HashMap<>();
-
-    public void fireKeyPressedByKeyCode(int keyCode, char c, int mods) {
-        if(c != '\0') {
-            synchronized(WORST_HACK) {
-                WORST_HACK.put(keyCode, c);
-            }
-        }
-
-        KeyEvent ev = new KeyEvent(dc_, KeyEvent.KEY_PRESSED, 0, mods, remapKeycode(keyCode, c), c);
-        sendKeyEvent(ev);
-    }
-
-    public void fireKeyReleasedByKeyCode(int keyCode, char c, int mods) {
-        if(c == '\0') {
-            synchronized(WORST_HACK) {
-                c = WORST_HACK.getOrDefault(keyCode, '\0');
-            }
-        }
-
-        KeyEvent ev = new KeyEvent(dc_, KeyEvent.KEY_RELEASED, 0, mods, remapKeycode(keyCode, c), c);
-        sendKeyEvent(ev);
-    }
-
     public void keyEventByKeyCode(int keyCode, char c, int mods, boolean pressed) {
-        if(pressed) {
-            fireKeyPressedByKeyCode(keyCode, c, mods);
-        } else {
-            fireKeyReleasedByKeyCode(keyCode, c, mods);
-        }
+        // we already processed the char in GuiView, so we don't need to do it again like MCEF does
+        KeyEvent ev = new KeyEvent(dc_, pressed ? KeyEvent.KEY_PRESSED : KeyEvent.KEY_RELEASED, 0, mods, remapKeycode(keyCode, c), c);
+        sendKeyEvent(ev);
     }
 }

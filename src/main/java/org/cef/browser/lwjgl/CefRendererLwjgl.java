@@ -46,7 +46,13 @@ public class CefRendererLwjgl implements ICefRenderer {
     public void destroy() {
         if(texture_id_ != 0) {
             glDeleteTextures(texture_id_);
+            texture_id_ = 0;
         }
+    }
+
+    @Override
+    protected void finalize() {
+        destroy(); // NO MEMORY LEAKS!
     }
 
     @Override

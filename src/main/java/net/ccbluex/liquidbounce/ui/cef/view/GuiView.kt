@@ -51,7 +51,7 @@ abstract class GuiView(private val page: Page) : GuiScreen() {
         // key up
         pressedKeyMap.map { it }.forEach { (key, char) ->
             if (!Keyboard.isKeyDown(key)) {
-                cefBrowser.fireKeyReleasedByKeyCode(key, char, 0)
+                cefBrowser.keyEventByKeyCode(key, char, keyModifiers(0), false)
                 pressedKeyMap.remove(key)
             }
         }
@@ -69,11 +69,20 @@ abstract class GuiView(private val page: Page) : GuiScreen() {
     }
 
     override fun mouseClicked(mouseX: Int, mouseY: Int, key: Int) {
-        cefBrowser.mouseInteracted(Mouse.getX(), Display.getHeight() - Mouse.getY(), mouseModifiers(keyModifiers(0)), key + 1, true, 1)
+        cefBrowser.mouseInteracted(Mouse.getX(), Display.getHeight() - Mouse.getY(), mouseModifiers(keyModifiers(0)), keyCode(key), true, 1)
     }
 
     override fun mouseReleased(mouseX: Int, mouseY: Int, key: Int) {
-        cefBrowser.mouseInteracted(Mouse.getX(), Display.getHeight() - Mouse.getY(), mouseModifiers(keyModifiers(0)), key + 1, false, 1)
+        cefBrowser.mouseInteracted(Mouse.getX(), Display.getHeight() - Mouse.getY(), mouseModifiers(keyModifiers(0)), keyCode(key), false, 1)
+    }
+
+    private fun keyCode(glCode: Int): Int {
+        return when(glCode) {
+            0 -> 1
+            1 -> 3
+            2 -> 2
+            else -> 0
+        }
     }
 
     override fun handleKeyboardInput() {
@@ -81,7 +90,7 @@ abstract class GuiView(private val page: Page) : GuiScreen() {
             val char = Keyboard.getEventCharacter()
             val key = Keyboard.getEventKey()
             val mod = keyModifiers(0)
-            cefBrowser.fireKeyPressedByKeyCode(key, char, mod)
+            cefBrowser.keyEventByKeyCode(key, char, mod, true)
             pressedKeyMap[key] = char
             if (ChatAllowedCharacters.isAllowedCharacter(char)) {
                 cefBrowser.keyTyped(char, mod)
