@@ -6,6 +6,7 @@ import net.ccbluex.liquidbounce.LiquidBounce
 import net.ccbluex.liquidbounce.event.EventTarget
 import net.ccbluex.liquidbounce.event.Listenable
 import net.ccbluex.liquidbounce.event.Render2DEvent
+import net.ccbluex.liquidbounce.ui.cef.page.ResourceScheme
 import net.ccbluex.liquidbounce.utils.ClientUtils
 import net.minecraft.client.Minecraft
 import org.cef.CefApp
@@ -14,6 +15,7 @@ import org.cef.browser.CefBrowser
 import org.cef.browser.CefBrowserCustom
 import org.cef.browser.CefFrame
 import org.cef.browser.CefMessageRouter
+import org.cef.browser.scheme.SchemeResourceHandler
 import org.cef.callback.CefQueryCallback
 import org.cef.handler.CefMessageRouterHandlerAdapter
 import java.io.File
@@ -77,6 +79,8 @@ object CefRenderManager : Listenable {
         cefClient.addMessageRouter(cefMessageRouter)
 
         configureCefClient(cefClient)
+
+        cefApp.registerSchemeHandlerFactory("resource", "", SchemeResourceHandler.build(ResourceScheme()))
 
         val version = cefApp.version
         ClientUtils.logInfo("Cef Loaded (jcefVersion=${version.jcefVersion}, cefVersion=${version.cefVersion}, chromeVersion=${version.chromeVersion})")

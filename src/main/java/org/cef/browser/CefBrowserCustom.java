@@ -27,17 +27,11 @@ import org.lwjgl.input.Keyboard;
  */
 public class CefBrowserCustom extends CefBrowser_N implements CefRenderHandler {
     private final ICefRenderer renderer_;
-//    private final long window_handle_ = 0L;
     private boolean justCreated_ = false;
-    // TODO make [browser_rect_] with right value
     private final Rectangle browser_rect_ = new Rectangle(0, 0, 1, 1);
     private final Point screenPoint_ = new Point(0, 0);
-    private final double scaleFactor_ = 1.0;
-    private final int depth = 32;
-    private final int depth_per_component = 8;
     private final boolean isTransparent_;
     private final Component dc_ = new Component(){};
-    private MouseEvent lastMouseEvent = new MouseEvent(dc_, MouseEvent.MOUSE_MOVED, 0, 0, 0, 0, 0, false);
 
     public CefBrowserCustom(CefClient client, String url, boolean transparent, CefRequestContext context, ICefRenderer renderer) {
         this(client, url, transparent, context, renderer, null, null);
@@ -191,7 +185,10 @@ public class CefBrowserCustom extends CefBrowser_N implements CefRenderHandler {
 
     @Override
     public boolean getScreenInfo(CefBrowser browser, CefScreenInfo screenInfo) {
-        screenInfo.Set(this.scaleFactor_, this.depth, this.depth_per_component, false, this.browser_rect_.getBounds(), this.browser_rect_.getBounds());
+        int depth_per_component = 8;
+        int depth = 32;
+        double scaleFactor_ = 1.0;
+        screenInfo.Set(scaleFactor_, depth, depth_per_component, false, this.browser_rect_.getBounds(), this.browser_rect_.getBounds());
         return true;
     }
 
@@ -216,7 +213,6 @@ public class CefBrowserCustom extends CefBrowser_N implements CefRenderHandler {
 
     public void mouseMoved(int x, int y, int mods) {
         MouseEvent ev = new MouseEvent(dc_, MouseEvent.MOUSE_MOVED, 0, mods, x, y, 0, false);
-        lastMouseEvent = ev;
         sendMouseEvent(ev);
     }
 
